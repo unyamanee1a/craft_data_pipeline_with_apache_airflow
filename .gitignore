@@ -2,6 +2,7 @@ logs/
 venv/
 dags/__pycache__/
 .env
+weather_data/
 
 __pycache__/
 *.py[cod]
