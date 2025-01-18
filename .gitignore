@@ -2,3 +2,14 @@ logs/
 venv/
 dags/__pycache__/
 .env
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyd
+*.so
+*.egg
+*.egg-info
+*.eggs
+*.swp

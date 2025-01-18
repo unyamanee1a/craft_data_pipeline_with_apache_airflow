@@ -25,13 +25,9 @@ from __future__ import annotations
 import logging
 import sys
 import time
-from pprint import pprint
-
 import pendulum
 
 from airflow.decorators import dag, task
-from airflow.operators.python import is_venv_installed
-
 log = logging.getLogger(__name__)
 
 PATH_TO_PYTHON_BINARY = sys.executable
