@@ -97,5 +97,5 @@ with DAG(dag_id='weather_etl_pipeline',
     ## DAG Worflow- ETL Pipeline
     weather_data = extract_weather_data()
     transformed_data = transform_weather_data(weather_data)
-    print(transformed_data)
+    print("hello", transformed_data)
     # load_weather_data(transformed_data)

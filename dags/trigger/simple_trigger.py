@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Define the DAG
 with DAG(
-    dag_id='example-trigger',
+    dag_id='simple_trigger',
     schedule_interval='@daily',  # Run daily
     start_date=datetime(2024, 1, 1),  # Start date
     catchup=False,  # Avoid running past executions
