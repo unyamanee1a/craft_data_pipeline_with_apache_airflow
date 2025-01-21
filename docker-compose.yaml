@@ -79,6 +79,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ./weather_data:/opt/airflow/weather_data
+    - ./billboard:/opt/airflow/billboard
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -101,6 +102,8 @@ services:
       interval: 10s
       retries: 5
       start_period: 5s
+    ports:
+      - "5432:5432"
     restart: always
   
   pgadmin:
@@ -261,6 +264,7 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
       - ./weather_data:/opt/airflow/weather_data
+      - ./billboard:/opt/airflow/billboard
 
   airflow-cli:
     <<: *airflow-common

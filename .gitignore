@@ -3,6 +3,7 @@ venv/
 dags/__pycache__/
 .env
 weather_data/
+billboard/
 
 __pycache__/
 *.py[cod]
