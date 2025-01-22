@@ -4,6 +4,7 @@ dags/__pycache__/
 .env
 weather_data/
 billboard/
+/downloads/
 
 __pycache__/
 *.py[cod]
