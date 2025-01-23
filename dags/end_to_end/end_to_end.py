@@ -1,16 +1,11 @@
-# from airflow import models
-# from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
-# from airflow.providers.http.operators.http import SimpleHttpOperator
-# from airflow.decorators import dag, task
-# from airflow.utils.dates import days_ago
-# from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from datetime import datetime, timedelta
 import os
+from google.cloud import bigquery
 from airflow.decorators import dag, task
 import pandas as pd
 import zipfile
-import json
 import requests
+from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 
 # Default arguments
 default_args = {
@@ -33,13 +28,11 @@ default_args = {
 )
 def greenery_to_bigquery():
 
-    # Task 1: Fetch Data from API (Greenery Data)
     @task()
     def fetch_greenery_data():
         # Example URL from OpenWeather API (replace with a valid one)
         url = "https://www.kaggle.com/api/v1/datasets/download/saurabhshahane/green-strategy-dataset"
 
-        # Make the API request
         response = requests.get(url, stream=True)
 
         if response.status_code != 200:
@@ -64,15 +57,16 @@ def greenery_to_bigquery():
         # Load the CSV file
         df = pd.read_csv("./downloads/Green Strategy Dataset.csv")
         output_path = "./downloads/cleaned_data.csv"
+        df.rename(columns={"Author(s) ID": "Authors_ID"}, inplace=True)
+        df.rename(columns={"Art. No.": "Article_Number"}, inplace=True)
+        df.rename(columns={"Chemicals/CAS": "Chemicals_CAS"}, inplace=True)
         # Step 1: Clean missing values
         df['DOI'].fillna('Unknown', inplace=True)
         df['Affiliations'].fillna('No affiliations listed', inplace=True)
         df['Abstract'].fillna('No abstract available', inplace=True)
 
-        # Drop rows where important information is missing (e.g., 'Authors', 'Title')
         df.dropna(subset=['Authors', 'Title'], how='any', inplace=True)
 
-        # Fill missing numerical values (like 'Page count', 'Cited by') with median or 0
         df['Page count'].fillna(df['Page count'].median(), inplace=True)
         df['Cited by'].fillna(0, inplace=True)
 
@@ -85,7 +79,6 @@ def greenery_to_bigquery():
         df['Title'] = df['Title'].str.strip().str.title()
         df['Authors'] = df['Authors'].str.strip().str.title()
 
-        # Step 4: Convert date columns to datetime format (if applicable)
         df['Conference date'] = pd.to_datetime(df['Conference date'], errors='coerce')
 
         # Step 5: Clean up numeric columns
@@ -94,16 +87,29 @@ def greenery_to_bigquery():
         df['Issue'] = pd.to_numeric(df['Issue'], errors='coerce')
 
         # Handle outliers or invalid data (e.g., negative page numbers)
-        df['Cited by'] = df['Cited by'].apply(lambda x: max(0, x))  # Set negative 'Cited by' values to 0
-        # df = df[df['Page start'] > 0]  # Remove invalid page starts
-        df = df[df['Page end'] > df['Page start']]  # 'Page end' should be greater than 'Page start'
+        df['Cited by'] = df['Cited by'].apply(lambda x: max(0, x))
+        df = df[df['Page end'] > df['Page start']]
 
         # Step 6: Save the cleaned DataFrame to a new CSV file
         df.to_csv(output_path, index=False)
         print(f"Cleaned data saved to {output_path}")
         print(df.dtypes)
 
-    fetch_greenery_data() >> extract_zip() >> clean_data()
+    @task
+    def load_dataframe_to_bq():
+        df = pd.read_csv("./downloads/cleaned_data.csv")
+        hook = BigQueryHook(bigquery_conn_id='gcp_key_in_connection')
+        credentials = hook.get_credentials()
+        table_id = "fluent-burner-443005-h5.dbt_smingmolee.greenery_data" ## Replace with your table ID
+        project_id = "fluent-burner-443005-h5" ## Replace with your project ID
+        df.to_gbq(
+                    destination_table=table_id,
+                    project_id=project_id,
+                    if_exists='replace',
+                    credentials=credentials
+                )
+
+    fetch_greenery_data() >> extract_zip() >> clean_data() >> load_dataframe_to_bq()
 
 
 greenery_to_bigquery()
