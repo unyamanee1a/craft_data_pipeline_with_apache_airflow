@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
 
 default_args = {
     'owner': 'airflow',
@@ -20,9 +21,18 @@ dag = DAG(
     catchup=False,
 )
 
+def hello_world():
+    print("hello world")
+
 start = EmptyOperator(
     task_id='start',
     dag=dag,
+)
+
+hello_world = PythonOperator(
+    task_id='hello-world',
+    dag=dag,
+    python_callable=hello_world
 )
 
 end = EmptyOperator(
@@ -30,4 +40,4 @@ end = EmptyOperator(
     dag=dag,
 )
 
-start >> end
+start >> hello_world >> end
