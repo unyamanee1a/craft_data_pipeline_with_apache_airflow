@@ -13,31 +13,43 @@ default_args = {
 }
 
 dag = DAG(
-    'first_dag',
+    'try',
     default_args=default_args,
-    description='My first Airflow DAG with an empty operator',
+    description='test task',
     schedule_interval=timedelta(days=1),
     start_date=datetime(2023, 1, 1),
     catchup=False,
 )
 
-def hello_world():
-    print("hello world")
 
 start = EmptyOperator(
     task_id='start',
     dag=dag,
 )
 
-hello_world = PythonOperator(
-    task_id='hello-world',
-    dag=dag,
-    python_callable=hello_world # call function
-)
-
-end = EmptyOperator(
-    task_id='end',
+branching = EmptyOperator(
+    task_id='branching',
     dag=dag,
 )
 
-start >> hello_world >> end #dependency ว่าทำอะไรก่อน
+success = EmptyOperator(
+    task_id='success',
+    dag=dag,
+)
+
+failure = EmptyOperator(
+    task_id='failure',
+    dag=dag,
+)
+
+finish = EmptyOperator(
+    task_id='finish',
+    dag=dag,
+)
+send_error = EmptyOperator(
+    task_id='send_error',
+    dag=dag,
+)
+
+start >> branching >>[success,failure] >> finish
+failure >> send_error

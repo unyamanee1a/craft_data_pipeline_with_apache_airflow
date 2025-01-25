@@ -80,8 +80,8 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ./weather_data:/opt/airflow/weather_data
-    - ./downloads:/opt/airflow/downloads
-    - ./gcs-credential.json:/opt/airflow/gcs-credential.json
+    - ./download:/opt/airflow/download
+    - ./principal-lane-448907-m8-f93d527e9bd1.json:/opt/airflow/gcs-credential.json
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on

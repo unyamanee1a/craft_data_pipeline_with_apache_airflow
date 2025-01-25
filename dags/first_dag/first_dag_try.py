@@ -13,9 +13,9 @@ default_args = {
 }
 
 dag = DAG(
-    'first_dag',
+    'first_dag_try',
     default_args=default_args,
-    description='My first Airflow DAG with an empty operator',
+    description='test task',
     schedule_interval=timedelta(days=1),
     start_date=datetime(2023, 1, 1),
     catchup=False,
@@ -29,15 +29,35 @@ start = EmptyOperator(
     dag=dag,
 )
 
-hello_world = PythonOperator(
-    task_id='hello-world',
+intermediate_task = EmptyOperator(
+    task_id='intermediate',
     dag=dag,
-    python_callable=hello_world # call function
 )
+
+second_intermediate_task = EmptyOperator(
+    task_id='second_intermediate',
+    dag=dag,
+)
+
+send_email = EmptyOperator(
+    task_id='send-email',
+    dag=dag,
+)
+
+send_line_message = EmptyOperator(
+    task_id='send-line',
+    dag=dag,
+)
+send_ms_team = EmptyOperator(
+    task_id='send-ms-team',
+    dag=dag,
+)
+
 
 end = EmptyOperator(
     task_id='end',
     dag=dag,
 )
 
-start >> hello_world >> end #dependency ว่าทำอะไรก่อน
+start >> [intermediate_task,second_intermediate_task] >> end >> [send_line_message, send_ms_team]
+second_intermediate_task >> send_email
